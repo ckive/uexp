@@ -3,7 +3,39 @@
 (TO WRITE BETTER)
 
 # How to use:
-
+Understanding structure of repo:
+```
+.
+│   README.md
+│   run_experiment.py
+|   ...    
+│
+└───ue
+│   └───experiments
+│   │   |
+|   |   └───dan
+|   |       |   m1_btc.py
+|   |       |   experiment.ipynb
+|   |       |   ...
+|   |   | 
+|   |   └───...
+│   │
+│   └───uexp
+│       │   
+|       └───benchmarking (tools)
+|       |
+|       └───data (for storing downloaded data)
+|       |
+|       └───dataprocessing (tools)
+|       |
+|       └───models (where to add new models)
+│           │   BasicModel.py
+│           │   model1.py
+│   
+└───model_experiments (contains saved models and plots)
+    │   model_1_dense
+    │   output.png
+```
 make a directory in ue/experiments with your name, you can write scripts and make notebooks in your directory
 see m1_btc.py for an example
 

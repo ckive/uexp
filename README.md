@@ -22,6 +22,7 @@ to see an example. It should print out training, evaluation losses and evaluatio
 Currently model is using tensorflow (bc much taken inspiration from (Inspired by)), will want to use pytorch uniformly. Please help with making your own models and experimenting with example models given by (Inspired by). They list many models that are implemented in the notebook. They also mention many 3rd party libraries (such as Facebook Kats, Linkedin Greykite etc), feel free to find a way to integrate them well with this repo.
 
 # Todo
+- bug: need to run twice to get good graph? first run graph is flat... but better to do number 2 first
 - from diffed log returns back to prices for plotting
 - implement the other types of models, especially...
     - NBEATS

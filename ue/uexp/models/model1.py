@@ -42,7 +42,7 @@ class Model_1(BaseModel):
         # Fit model
         self.model.fit(x=self.train_windows,
                     y=self.train_labels, 
-                    epochs=10,
+                    epochs=100,
                     verbose=1,
                     batch_size=128,
                     validation_data=(self.test_windows, self.test_labels),

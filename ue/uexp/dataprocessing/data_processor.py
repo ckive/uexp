@@ -13,27 +13,6 @@ class DataProcessor():
                 print('Alpaca successfully connected')
             except:
                 raise ValueError('Please input correct account info for alpaca!')
-        elif self.data_source == "joinquant":
-            try:
-                # users should input values: kwargs['username'], kwargs['password']
-                self.processor = JoinquantProcessor(data_source, **kwargs)
-                print('Joinquant successfully connected')
-            except:
-                raise ValueError('Please input correct account info for joinquant!')
-        elif self.data_source =='ricequant':
-            try:
-                # users should input values: kwargs['username'], kwargs['password']
-                self.processor = RiceQuant(data_source, **kwargs)
-                print('Ricequant successfully connected')
-            except:
-                raise ValueError('Please input correct account info for ricequant!')
-        elif self.data_source == 'wrds':
-            try:
-                # users should input values: kwargs['if_offline']
-                self.processor = Wrds(data_source, **kwargs)
-                print('Wrds successfully connected')
-            except:
-                raise ValueError('Please input correct account info for wrds!')
         elif self.data_source == 'yahoofinance':
             try:
                 self.processor = YahooFinance(data_source, **kwargs)
@@ -46,13 +25,6 @@ class DataProcessor():
                 print('Binance successfully connected')
             except:
                 raise ValueError('Please input correct account info for binance!')
-        elif self.data_source == "tusharepro":
-            try:
-                # users should input values: kwargs['token'], choose to input values: kwargs['adj']
-                self.processor = Tusharepro(data_source, **kwargs)
-                print('tusharepro successfully connected')
-            except:
-                raise ValueError('Please input correct account info for tusharepro!')
         else:
             raise ValueError('Data source input is NOT supported yet.')
     

@@ -4,6 +4,7 @@ from ..benchmarking.simpleplot import plot_time_series
 
 # should rename this to data processor xD
 
+# change name to WindowBasedBaseModel
 class BaseModel:
     def __init__(self, data):
         # default horizon and window

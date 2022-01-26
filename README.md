@@ -70,3 +70,6 @@ https://otexts.com/fpp3/
 
 Inspired by 
 https://github.com/mrdbourke/tensorflow-deep-learning/blob/main/10_time_series_forecasting_in_tensorflow.ipynb
+
+TradingView Basics by Eagan
+https://docs.google.com/document/d/1fAzeJ1TtDGklCbdRWKJ-ymn-_MfDqDQ0aNnwGS5P5ww/edit?usp=sharing

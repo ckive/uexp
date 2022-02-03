@@ -1,7 +1,7 @@
 from ue.uexp.models.BaseModel import BaseModel
 from ue.uexp.models.reversion import MeanRevertingTrader
 from ue.uexp.models.util import evaluate_preds
-from ue.uexp.benchmarking.simpleplot import plot_time_series
+from ue.uexp.benchmarking.plots import plot_time_series
 from ue.uexp.dataprocessing.processor_binance import BinanceProcessor
 import tensorflow as tf
 

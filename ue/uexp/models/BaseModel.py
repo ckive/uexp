@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from ..benchmarking.simpleplot import plot_time_series
+from ..benchmarking.plots import plot_time_series
 
 # should rename this to data processor xD
 

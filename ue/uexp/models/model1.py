@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 from .util import create_model_checkpoint, evaluate_preds
-from ue.uexp.benchmarking.simpleplot import plot_time_series
+from ue.uexp.benchmarking.plots import plot_time_series
 from .BaseModel import BaseModel
 import matplotlib.pyplot as plt
 

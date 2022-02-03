@@ -1,9 +1,11 @@
 import datetime
 import os
+import numpy as np
 import urllib, zipfile
 from pathlib import Path
 from datetime import *
 from typing import List
+from sklearn.model_selection import train_test_split
 
 TIME_ZONE_SHANGHAI = 'Asia/Shanghai'  ## Hang Seng HSI, SSE, CSI
 TIME_ZONE_USEASTERN = 'US/Eastern'  # Dow, Nasdaq, SP
@@ -187,3 +189,116 @@ def get_path(trading_type, market_data_type, time_period, symbol, interval=None)
     else:
         path = f'{trading_type_path}/{time_period}/{market_data_type}/{symbol.upper()}/'
     return path
+
+
+### FROM KAGGLE
+# reduce memory (@mfjwr1); distorts the data a little (but reduces by 60% memory)
+def red_mem(df, verbose=True):
+    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+    start_mem = df.memory_usage().sum() / 1024**2
+    for col in df.columns:
+        col_type = df[col].dtypes
+        if col_type in numerics:
+            c_min = df[col].min()
+            c_max = df[col].max()
+            if str(col_type)[:3] == 'int':
+                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                    df[col] = df[col].astype(np.int8)
+                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    df[col] = df[col].astype(np.int16)
+                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    df[col] = df[col].astype(np.int32)
+                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                    df[col] = df[col].astype(np.int64)
+            else:
+                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
+                    df[col] = df[col].astype(np.float16)
+                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    df[col] = df[col].astype(np.float32)
+                else:
+                    df[col] = df[col].astype(np.float64)
+
+    end_mem = df.memory_usage().sum() / 1024**2
+    print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
+    print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
+
+    return df
+
+
+    # Split for TimeSeries
+def TimeSeries_Split(ldf,split_id=[None,None],test_id=False,cut_id=None):
+    
+    # Reduce the number of used data
+    if(cut_id is not None):
+        print('data reduction used')
+        ldf = ldf.iloc[-cut_id:]
+        t1 = ldf.index.max();t0 = ldf.index.min()
+        print(f'Dataset Min.Index: {t0} | Max.Index: {t1}')
+        
+    if(split_id[0] is not None):
+        # General Percentage Split (Non Shuffle requied for Time Series)
+        train_df,pred_df = train_test_split(ldf,test_size=split_id[0],shuffle=False)
+    elif(split_id[1] is not None):
+        # specific time split (NOT USED)
+        train_df = df.loc[:split_id[1]]; pred_df = df.loc[split_id[1]:] 
+    else:
+        print('Choose One Splitting Method Only')
+        
+#     y_train = train_df[feature]
+#     X_train = train_df.loc[:, train_df.columns != feature]
+#     if(test_id):
+#         y_test = pred_df[feature]
+#         X_test = pred_df.loc[:, pred_df.columns != feature]
+        
+    return train_df,pred_df # return 
+
+
+def upper_shadow(df): return df['High'] - np.maximum(df['Close'], df['Open'])
+def lower_shadow(df): return np.minimum(df['Close'], df['Open']) - df['Low']
+
+def gen_feats0(df, row = False):
+    df_feat = df
+    df_feat['spread'] = df_feat['High'] - df_feat['Low']
+    #df_feat['log_price_change'] = np.log(df_feat['Close']/df_feat['Open'])
+    df_feat['upper_Shadow'] = upper_shadow(df_feat)
+    df_feat['lower_Shadow'] = lower_shadow(df_feat)
+    df_feat['trade'] = df_feat['Close'] - df_feat['Open']
+    #df_feat['LOGVOL'] = np.log(1. + df_feat['Volume'])
+    #df_feat['LOGVOL'] = df_feat['LOGVOL']
+    
+    return df_feat
+
+def gen_feats1(df, row = False):
+    df_feat = df
+    df_feat['spread'] = df_feat['High'] - df_feat['Low']
+    df_feat['log_price_change'] = np.log(df_feat['Close']/df_feat['Open'])
+    df_feat['upper_Shadow'] = upper_shadow(df_feat)
+    df_feat['lower_Shadow'] = lower_shadow(df_feat)
+    df_feat["high_div_low"] = df_feat["High"] / df_feat["Low"]
+    df_feat['trade'] = df_feat['Close'] - df_feat['Open']
+    df_feat['shadow1'] = df_feat['trade'] / df_feat['Volume']
+    df_feat['shadow3'] = df_feat['upper_Shadow'] / df_feat['Volume']
+    df_feat['shadow5'] = df_feat['lower_Shadow'] / df_feat['Volume']
+    df_feat['mean1'] = (df_feat['shadow5'] + df_feat['shadow3']) / 2
+    df_feat['mean2'] = (df_feat['shadow1'] + df_feat['Volume']) / 2
+    df_feat['UPS'] = (df_feat['High'] - np.maximum(df_feat['Close'], df_feat['Open']))
+    df_feat['UPS'] = df_feat['UPS']
+    df_feat['LOS'] = (np.minimum(df_feat['Close'], df_feat['Open']) - df_feat['Low'])
+    df_feat['LOS'] = df_feat['LOS']
+    df_feat['LOGVOL'] = np.log(1. + df_feat['Volume'])
+    df_feat['LOGVOL'] = df_feat['LOGVOL']
+    df_feat["Close/Open"] = df_feat["Close"] / df_feat["Open"]
+    df_feat["Close-Open"] = df_feat["Close"] - df_feat["Open"]
+    df_feat["High-Low"] = df_feat["High"] - df_feat["Low"]
+    df_feat["High/Low"] = df_feat["High"] / df_feat["Low"]
+    if row: df_feat['Mean'] = df_feat[['Open', 'High', 'Low', 'Close']].mean()
+    else: df_feat['Mean'] = df_feat[['Open', 'High', 'Low', 'Close']].mean(axis = 1)
+    df_feat["High/Mean"] = df_feat["High"] / df_feat["Mean"]
+    df_feat["Low/Mean"] = df_feat["Low"] / df_feat["Mean"]
+    mean_price = df_feat[['Open', 'High', 'Low', 'Close']].mean(axis=1)
+    median_price = df_feat[['Open', 'High', 'Low', 'Close']].median(axis=1)
+    df_feat['high2mean'] = df_feat['High'] / mean_price
+    df_feat['low2mean'] = df_feat['Low'] / mean_price
+    df_feat['high2median'] = df_feat['High'] / median_price
+    df_feat['low2median'] = df_feat['Low'] / median_price
+    return df_feat

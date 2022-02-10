@@ -16,7 +16,9 @@ TIME_ZONE_SELFDEFINED = 'xxx'  # If neither of the above is your time zone, you 
 USE_TIME_ZONE_SELFDEFINED = 0  # 0 (default) or 1 (use the self defined)
 BINANCE_BASE_URL = 'https://data.binance.vision/'
 
-def calc_time_zone(ticker_list: List[str], time_zone_selfdefined: str, use_time_zone_selfdefined: int) -> str:
+
+def calc_time_zone(ticker_list: List[str], time_zone_selfdefined: str,
+                   use_time_zone_selfdefined: int) -> str:
     time_zone = ''
     if use_time_zone_selfdefined == 1:
         time_zone = time_zone_selfdefined
@@ -26,7 +28,9 @@ def calc_time_zone(ticker_list: List[str], time_zone_selfdefined: str, use_time_
         time_zone = TIME_ZONE_USEASTERN
     elif ticker_list == CAC_40_TICKER:
         time_zone = TIME_ZONE_PARIS
-    elif ticker_list in [DAX_30_TICKER, TECDAX_TICKER, MDAX_50_TICKER, SDAX_50_TICKER]:
+    elif ticker_list in [
+            DAX_30_TICKER, TECDAX_TICKER, MDAX_50_TICKER, SDAX_50_TICKER
+    ]:
         time_zone = TIME_ZONE_BERLIN
     elif ticker_list == LQ45_TICKER:
         time_zone = TIME_ZONE_JAKARTA
@@ -34,10 +38,12 @@ def calc_time_zone(ticker_list: List[str], time_zone_selfdefined: str, use_time_
         raise ValueError("Time zone is wrong.")
     return time_zone
 
+
 # e.g., '20210911' -> '2021-09-11'
 def add_hyphen_for_date(d: str) -> str:
     res = d[:4] + '-' + d[4:6] + '-' + d[6:]
     return res
+
 
 # e.g., '2021-09-11' -> '20210911'
 def remove_hyphen_for_date(d: str) -> str:
@@ -85,11 +91,8 @@ def remove_all_files(remove, path_of_data):
         if len(dir_list) == 0:
             print("dir_list: {}. Right.".format(dir_list))
         else:
-            print(
-                "dir_list: {}. Wrong. You should remove all files by hands.".format(
-                    dir_list
-                )
-            )
+            print("dir_list: {}. Wrong. You should remove all files by hands.".
+                  format(dir_list))
         assert len(dir_list) == 0
     else:
         if len(dir_list) == 0:
@@ -106,35 +109,39 @@ def date2str(dat):
 def str2date(str_dat):
     return datetime.datetime.strptime(str_dat, "%Y-%m-%d").date()
 
+
 ### ticker download helpers
+
 
 def get_destination_dir(file_url):
     store_directory = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(store_directory, file_url)
 
+
 def get_download_url(file_url):
     return "{}{}".format(BINANCE_BASE_URL, file_url)
+
 
 #downloads zip, unzips zip and deltes zip
 def download_n_unzip_file(base_path, file_name, date_range=None):
     download_path = "{}{}".format(base_path, file_name)
     if date_range:
-        date_range = date_range.replace(" ","_")
+        date_range = date_range.replace(" ", "_")
         base_path = os.path.join(base_path, date_range)
 
     #raw_cache_dir = get_destination_dir("./cache/tick_raw")
     raw_cache_dir = "./cache/tick_raw"
     zip_save_path = os.path.join(raw_cache_dir, file_name)
 
-    csv_name = os.path.splitext(file_name)[0]+".csv"
+    csv_name = os.path.splitext(file_name)[0] + ".csv"
     csv_save_path = os.path.join(raw_cache_dir, csv_name)
 
     fhandles = []
 
-    if os.path.exists(csv_save_path): 
+    if os.path.exists(csv_save_path):
         print("\nfile already exists! {}".format(csv_save_path))
         return [csv_save_path]
-  
+
     # make the "cache" directory (only)
     if not os.path.exists(raw_cache_dir):
         Path(raw_cache_dir).mkdir(parents=True, exist_ok=True)
@@ -145,27 +152,27 @@ def download_n_unzip_file(base_path, file_name, date_range=None):
         length = dl_file.getheader('content-length')
         if length:
             length = int(length)
-            blocksize = max(4096,length//100)
+            blocksize = max(4096, length // 100)
 
         with open(zip_save_path, 'wb') as out_file:
             dl_progress = 0
             print("\nFile Download: {}".format(zip_save_path))
             while True:
-                buf = dl_file.read(blocksize)   
+                buf = dl_file.read(blocksize)
                 if not buf:
                     break
                 out_file.write(buf)
                 #visuals
                 #dl_progress += len(buf)
                 #done = int(50 * dl_progress / length)
-                #sys.stdout.write("\r[%s%s]" % ('#' * done, '.' * (50-done)) )    
+                #sys.stdout.write("\r[%s%s]" % ('#' * done, '.' * (50-done)) )
                 #sys.stdout.flush()
-    
+
         #unzip and delete zip
         file = zipfile.ZipFile(zip_save_path)
         with zipfile.ZipFile(zip_save_path) as zip:
             #guaranteed just 1 csv
-            csvpath = zip.extract(zip.namelist()[0], raw_cache_dir) 
+            csvpath = zip.extract(zip.namelist()[0], raw_cache_dir)
             fhandles.append(csvpath)
         os.remove(zip_save_path)
         return fhandles
@@ -174,12 +181,18 @@ def download_n_unzip_file(base_path, file_name, date_range=None):
         print("\nFile not found: {}".format(download_url))
         pass
 
+
 def convert_to_date_object(d):
     year, month, day = [int(x) for x in d.split('-')]
     date_obj = date(year, month, day)
     return date_obj
 
-def get_path(trading_type, market_data_type, time_period, symbol, interval=None):
+
+def get_path(trading_type,
+             market_data_type,
+             time_period,
+             symbol,
+             interval=None):
     trading_type_path = 'data/spot'
     #currently just supporting spot
     if trading_type != 'spot':
@@ -202,61 +215,74 @@ def red_mem(df, verbose=True):
             c_min = df[col].min()
             c_max = df[col].max()
             if str(col_type)[:3] == 'int':
-                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(
+                        np.int8).max:
                     df[col] = df[col].astype(np.int8)
-                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(
+                        np.int16).max:
                     df[col] = df[col].astype(np.int16)
-                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(
+                        np.int32).max:
                     df[col] = df[col].astype(np.int32)
-                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(
+                        np.int64).max:
                     df[col] = df[col].astype(np.int64)
             else:
-                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
+                if c_min > np.finfo(np.float16).min and c_max < np.finfo(
+                        np.float16).max:
                     df[col] = df[col].astype(np.float16)
-                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(
+                        np.float32).max:
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
 
     end_mem = df.memory_usage().sum() / 1024**2
     print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
-    print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
+    print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) /
+                                        start_mem))
 
     return df
 
-
     # Split for TimeSeries
-def TimeSeries_Split(ldf,split_id=[None,None],test_id=False,cut_id=None):
-    
-    # Reduce the number of used data
-    if(cut_id is not None):
-        print('data reduction used')
-        ldf = ldf.iloc[-cut_id:]
-        t1 = ldf.index.max();t0 = ldf.index.min()
-        print(f'Dataset Min.Index: {t0} | Max.Index: {t1}')
-        
-    if(split_id[0] is not None):
-        # General Percentage Split (Non Shuffle requied for Time Series)
-        train_df,pred_df = train_test_split(ldf,test_size=split_id[0],shuffle=False)
-    elif(split_id[1] is not None):
-        # specific time split (NOT USED)
-        train_df = df.loc[:split_id[1]]; pred_df = df.loc[split_id[1]:] 
-    else:
-        print('Choose One Splitting Method Only')
-        
-#     y_train = train_df[feature]
-#     X_train = train_df.loc[:, train_df.columns != feature]
-#     if(test_id):
-#         y_test = pred_df[feature]
-#         X_test = pred_df.loc[:, pred_df.columns != feature]
-        
-    return train_df,pred_df # return 
 
 
-def upper_shadow(df): return df['High'] - np.maximum(df['Close'], df['Open'])
-def lower_shadow(df): return np.minimum(df['Close'], df['Open']) - df['Low']
+# def TimeSeries_Split(ldf,split_id=[None,None],test_id=False,cut_id=None):
 
-def gen_feats0(df, row = False):
+#     # Reduce the number of used data
+#     if(cut_id is not None):
+#         print('data reduction used')
+#         ldf = ldf.iloc[-cut_id:]
+#         t1 = ldf.index.max();t0 = ldf.index.min()
+#         print(f'Dataset Min.Index: {t0} | Max.Index: {t1}')
+
+#     if(split_id[0] is not None):
+#         # General Percentage Split (Non Shuffle requied for Time Series)
+#         train_df,pred_df = train_test_split(ldf,test_size=split_id[0],shuffle=False)
+#     elif(split_id[1] is not None):
+#         # specific time split (NOT USED)
+#         train_df = df.loc[:split_id[1]]; pred_df = df.loc[split_id[1]:]
+#     else:
+#         print('Choose One Splitting Method Only')
+
+# #     y_train = train_df[feature]
+# #     X_train = train_df.loc[:, train_df.columns != feature]
+# #     if(test_id):
+# #         y_test = pred_df[feature]
+# #         X_test = pred_df.loc[:, pred_df.columns != feature]
+
+#     return train_df,pred_df # return
+
+
+def upper_shadow(df):
+    return df['High'] - np.maximum(df['Close'], df['Open'])
+
+
+def lower_shadow(df):
+    return np.minimum(df['Close'], df['Open']) - df['Low']
+
+
+def gen_feats0(df, row=False):
     df_feat = df
     df_feat['spread'] = df_feat['High'] - df_feat['Low']
     #df_feat['log_price_change'] = np.log(df_feat['Close']/df_feat['Open'])
@@ -265,13 +291,14 @@ def gen_feats0(df, row = False):
     df_feat['trade'] = df_feat['Close'] - df_feat['Open']
     #df_feat['LOGVOL'] = np.log(1. + df_feat['Volume'])
     #df_feat['LOGVOL'] = df_feat['LOGVOL']
-    
+
     return df_feat
 
-def gen_feats1(df, row = False):
+
+def gen_feats1(df, row=False):
     df_feat = df
     df_feat['spread'] = df_feat['High'] - df_feat['Low']
-    df_feat['log_price_change'] = np.log(df_feat['Close']/df_feat['Open'])
+    df_feat['log_price_change'] = np.log(df_feat['Close'] / df_feat['Open'])
     df_feat['upper_Shadow'] = upper_shadow(df_feat)
     df_feat['lower_Shadow'] = lower_shadow(df_feat)
     df_feat["high_div_low"] = df_feat["High"] / df_feat["Low"]
@@ -281,9 +308,11 @@ def gen_feats1(df, row = False):
     df_feat['shadow5'] = df_feat['lower_Shadow'] / df_feat['Volume']
     df_feat['mean1'] = (df_feat['shadow5'] + df_feat['shadow3']) / 2
     df_feat['mean2'] = (df_feat['shadow1'] + df_feat['Volume']) / 2
-    df_feat['UPS'] = (df_feat['High'] - np.maximum(df_feat['Close'], df_feat['Open']))
+    df_feat['UPS'] = (df_feat['High'] -
+                      np.maximum(df_feat['Close'], df_feat['Open']))
     df_feat['UPS'] = df_feat['UPS']
-    df_feat['LOS'] = (np.minimum(df_feat['Close'], df_feat['Open']) - df_feat['Low'])
+    df_feat['LOS'] = (np.minimum(df_feat['Close'], df_feat['Open']) -
+                      df_feat['Low'])
     df_feat['LOS'] = df_feat['LOS']
     df_feat['LOGVOL'] = np.log(1. + df_feat['Volume'])
     df_feat['LOGVOL'] = df_feat['LOGVOL']
@@ -292,7 +321,9 @@ def gen_feats1(df, row = False):
     df_feat["High-Low"] = df_feat["High"] - df_feat["Low"]
     df_feat["High/Low"] = df_feat["High"] / df_feat["Low"]
     if row: df_feat['Mean'] = df_feat[['Open', 'High', 'Low', 'Close']].mean()
-    else: df_feat['Mean'] = df_feat[['Open', 'High', 'Low', 'Close']].mean(axis = 1)
+    else:
+        df_feat['Mean'] = df_feat[['Open', 'High', 'Low',
+                                   'Close']].mean(axis=1)
     df_feat["High/Mean"] = df_feat["High"] / df_feat["Mean"]
     df_feat["Low/Mean"] = df_feat["Low"] / df_feat["Mean"]
     mean_price = df_feat[['Open', 'High', 'Low', 'Close']].mean(axis=1)

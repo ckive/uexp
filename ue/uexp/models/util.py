@@ -209,3 +209,6 @@ class WindowGenerator():
             f'Label indices: {self.label_indices}',
             #f'Label column name(s): {self.label_columns}'
         ])
+
+
+# def plot_pred(y_true, y_pred):

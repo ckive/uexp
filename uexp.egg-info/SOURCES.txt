@@ -1,6 +1,0 @@
-README.md
-setup.py
-uexp.egg-info/PKG-INFO
-uexp.egg-info/SOURCES.txt
-uexp.egg-info/dependency_links.txt
-uexp.egg-info/top_level.txt

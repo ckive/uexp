@@ -15,6 +15,7 @@ from ue.uexp.dataprocessing.processor_binance import BinanceProcessor
 from ue.uexp.dataprocessing.func import *
 from ue.uexp.dataprocessing.ta import *
 from ue.uexp.models.util import *
+from ue.uexp.benchmarking.gifify import build_gif
 
 import warnings
 
@@ -45,7 +46,7 @@ def run_nbeats_rawprices_experiment(start,
 
     time_interval = "1s"
     p = BinanceProcessor("binance")
-    df = p.download_data(contract, start, end, time_interval)
+    df = p.download_data([contract], start, end, time_interval)
     df.reset_index(inplace=True)
     df.rename(columns={'index': 'time'}, inplace=True)
     df['time_idx'] = df.index
@@ -112,18 +113,19 @@ def run_nbeats_rawprices_experiment(start,
     net.hparams.learning_rate = res.suggestion()
 
     # Fitting
-    early_stop_callback = EarlyStopping(monitor="val_loss",
-                                        min_delta=1e-4,
-                                        patience=10,
-                                        verbose=False,
-                                        mode="min")
+    # early_stop_callback = EarlyStopping(monitor="val_loss",
+    #                                     min_delta=1e-4,
+    #                                     patience=10,
+    #                                     verbose=False,
+    #                                     mode="min")
     trainer = pl.Trainer(
-        max_epochs=100,
-        gpus=0,
-        weights_summary="top",
+        max_epochs=1000,
+        devices="auto",
+        accelerator="auto",
         gradient_clip_val=0.01,
-        callbacks=[early_stop_callback],
-        limit_train_batches=30,
+        default_root_dir="model_checkpoints",
+        #callbacks=[early_stop_callback],
+        #limit_train_batches=30, # :O WTF! this is why it's under performing, only 31 epochs..............
     )
 
     net = NBeats.from_dataset(
@@ -166,10 +168,13 @@ def run_nbeats_rawprices_experiment(start,
                                    add_loss_to_title=True).savefig(
                                        os.path.join(basepath, imgpath))
 
+    #make gif!
+    build_gif(basepath, "result.gif")
+
 
 run_nbeats_rawprices_experiment(start="2021-12-15",
                                 end="2021-12-31",
-                                contract=["BTCUSDT"],
-                                max_encoder_length=60,
-                                max_prediction_length=20,
-                                prediction_length=30)
+                                contract="BTCUSDT",
+                                max_encoder_length=300,
+                                max_prediction_length=10,
+                                prediction_length=120)

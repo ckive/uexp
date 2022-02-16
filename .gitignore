@@ -1,0 +1,17 @@
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+# Apple
+.DS_Store
+*/.DS_Store/*
+# VSCode
+.vscode
+uexp.egg-info
+# Python Tools
+__pycache__
+*/__pycache__/*
+*.pyc
+# Repo Specific
+ue/experiments/dan/cache
+ue/experiments/dan/model_experiments
+ue/experiments/model_experiments

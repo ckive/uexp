@@ -12,10 +12,10 @@ __pycache__
 */__pycache__/*
 *.pyc
 # Repo Specific
-*/cache/*
-*/model_experiments/*
-*/experiment_plots/*
-*/lightning_logs/*
-*/optuna_test/*
+**/cache
+**/model_experiments
+**/experiment_plots
+**/lightning_logs
+**/optuna_test
 *.png
 *.pth.tar

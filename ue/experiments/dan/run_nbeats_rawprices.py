@@ -1,7 +1,7 @@
 #======Core============
 import pandas as pd
 import numpy as np
-import os
+import os, sys
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 import torch
@@ -82,61 +82,49 @@ def run_nbeats_rawprices_experiment(start,
                                               batch_size=batch_size,
                                               num_workers=0)
 
-    # Train Network
-    # Params (from **training_params if exists)
-    #lr = training_params['lr']
-    lr = 3e-2
-    weight_decay = 1e-2
-    widths = [32, 512]
-    backcast_loss_ratio = 0.1
-
-    pl.seed_everything(42, workers=True)
-
-    trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        gradient_clip_val=0.01,
-        default_root_dir="model_checkpoints",
-    )  #clipping gradient to prevent explosion
-    net = NBeats.from_dataset(training,
-                              learning_rate=lr,
-                              weight_decay=weight_decay,
-                              widths=widths,
-                              backcast_loss_ratio=backcast_loss_ratio)
-
-    # find optimal learning rate
-    res = trainer.tuner.lr_find(net,
-                                train_dataloader=train_dataloader,
-                                val_dataloaders=val_dataloader,
-                                min_lr=1e-5)
-    #use suggested optimal lr
-    net.hparams.learning_rate = res.suggestion()
-
     # Fitting
-    # early_stop_callback = EarlyStopping(monitor="val_loss",
-    #                                     min_delta=1e-4,
-    #                                     patience=10,
-    #                                     verbose=False,
-    #                                     mode="min")
+    # early_stop_callback = EarlyStopping(
+    #     monitor="val_loss",
+    #     #i dont think 0.1 is possible atm.
+    #     stopping_threshold=0.1,
+    #     patience=5,
+    #     verbose=False,
+    #     mode="min")
+
     trainer = pl.Trainer(
-        max_epochs=1000,
-        devices="auto",
-        accelerator="auto",
+        auto_lr_find=True,
+        max_epochs=100,
+        # devices="auto",
+        # accelerator="auto",
+        # strategy="ddp",
+        gpus=1,
         gradient_clip_val=0.01,
         default_root_dir="model_checkpoints",
-        #callbacks=[early_stop_callback],
+        # callbacks=[early_stop_callback],
         #limit_train_batches=30, # :O WTF! this is why it's under performing, only 31 epochs..............
     )
 
     net = NBeats.from_dataset(
         training,
-        learning_rate=4e-3,
+        learning_rate=1e-2,  #bigger LR from original 4e-3
         log_interval=10,
         log_val_interval=1,
         weight_decay=1e-2,
         widths=[32, 512],
         backcast_loss_ratio=1.0,
     )
+
+    # find optimal lr and use it (WTF FAILS)
+    # lr_finder = trainer.tuner.lr_find(net,
+    #                                   train_dataloader=train_dataloader,
+    #                                   val_dataloaders=val_dataloader,
+    #                                   min_lr=1e-5)
+    # net.hparams.lr = lr_finder.suggestion()
+
+    # trainer.tune(net,
+    #              train_dataloader=train_dataloader,
+    #              val_dataloaders=val_dataloader,
+    #              )
 
     trainer.fit(
         net,
@@ -159,7 +147,7 @@ def run_nbeats_rawprices_experiment(start,
                                             mode="raw",
                                             return_x=True)
 
-    for idx in range(prediction_length):  # plot 10 examples
+    for idx in range(prediction_length):  # plot X examples
         imgpath = "step{}.png".format(idx)
         basepath = os.path.join('experiment_plots', exp_name)
         best_model.plot_prediction(x,
@@ -167,14 +155,32 @@ def run_nbeats_rawprices_experiment(start,
                                    idx=idx,
                                    add_loss_to_title=True).savefig(
                                        os.path.join(basepath, imgpath))
-
+    print("experiment complete!")
     #make gif!
-    build_gif(basepath, "result.gif")
+    #build_gif(basepath, "result.gif")
 
 
-run_nbeats_rawprices_experiment(start="2021-12-15",
-                                end="2021-12-31",
-                                contract="BTCUSDT",
-                                max_encoder_length=300,
-                                max_prediction_length=10,
-                                prediction_length=120)
+# This solves the "An attempt ... boostrapping phase"
+# https://github.com/pytorch/pytorch/issues/5858
+# NOTE: muliple GPU right now FAILS... which sucks...
+if __name__ == "__main__":
+    # if len(sys.argv) < 3:
+    #     exit()
+    # contract = sys.argv[1]
+    # mel = sys.argv[2]
+    # run_nbeats_rawprices_experiment(start="2021-12-30",
+    #                                 end="2021-12-31",
+    #                                 contract=contract,
+    #                                 max_encoder_length=mel,
+    #                                 max_prediction_length=10,
+    #                                 prediction_length=60)
+
+    run_nbeats_rawprices_experiment(start="2022-02-01",
+                                    end="2022-02-02",
+                                    contract="BTCUSDT",
+                                    max_encoder_length=120,
+                                    max_prediction_length=10,
+                                    prediction_length=60)
+
+# TIP: nohup python run_nbeats_rawprices.py &
+# to run throughout the night

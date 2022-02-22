@@ -14,8 +14,10 @@ __pycache__
 # Repo Specific
 **/cache
 **/model_experiments
+**/model_checkpoints
 **/experiment_plots
 **/lightning_logs
 **/optuna_test
 *.png
 *.pth.tar
+*.out
